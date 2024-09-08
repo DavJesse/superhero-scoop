@@ -40,13 +40,43 @@ const generateTable = (loadData) => {
     loadData.forEach(item => {
         const row = document.createElement('tr');
 
-        // create cells for name 
+        // create cells for icon
         const img = document.createElement('img')
         img.src = item.images.xs;
         img.alt = item.name;
         row.append(createCell("",img))
 
-        // creating input files for others
+        // creating cell for name
+        row.append(createCell(item.name))
+
+        // Full Name
+        row.append(createCell(item.biography.fullName))
+
+        // Powerstats 
+        // Intelligence, Strength,Speed,Durability,Power, Combat
+        const powerstats = Object.entries(item.powerstats)
+        .map(([value]) => `${value} `)
+
+        row.append(createCell(powerstats))
+
+        // Race
+        row.append(createCell(item.appearance.race))
+
+        // Gender
+        row.append(createCell(item.appearance.gender))
+
+        // Height
+        row.append(createCell(item.appearance.gender))
+        
+        // Weight
+        row.append(createCell(item.appearance.weight))
+
+        // Place of Birth
+        row.append(createCell(item.biography.placeOfBirth))
+
+        // Alignment
+        row.append(createCell(item.biography.alignment))
+
 
         tbody.append(row);
     });

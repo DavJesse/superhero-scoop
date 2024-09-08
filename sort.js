@@ -52,13 +52,13 @@ const sortData = (column, ascending) => {
                 aValue = a.appearance.gender || '';
                 bValue = b.appearance.gender || '';
                 break;
-            case 'height':
-                aValue = parseInt(a.appearance.height[1]) || 0;  // Assumes height is in the format [ft, cm]
-                bValue = parseInt(b.appearance.height[1]) || 0;
+             case 'height':
+                aValue = parseFloat(a.appearance.height[1]) || 0;  // Assumes height is in the format [ft, cm]
+                bValue = parseFloat(b.appearance.height[1]) || 0;
                 break;
             case 'weight':
-                aValue = parseInt(a.appearance.weight[1]) || 0;  // Assumes weight is in the format [lb, kg]
-                bValue = parseInt(b.appearance.weight[1]) || 0;
+                aValue = parseFloat(a.appearance.weight[1]) || 0;  // Assumes weight is in the format [lb, kg]
+                bValue = parseFloat(b.appearance.weight[1]) || 0;
                 break;
             case 'placeOfBirth':
                 aValue = a.biography.placeOfBirth || '';

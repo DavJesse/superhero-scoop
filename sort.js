@@ -9,6 +9,8 @@ let pageSize = 20;  // Default page size
 
 let superheroes = [];  // To store all data
 let filteredData = []; // To store filtered data based on search
+let currentSortColumn = 'name'; // Initial sort by Name
+let isAscending = true;  // Initial sort order is ascending
 
 export function sort(){
    generateTable(filteredData);  // Initially generate table with full data
@@ -24,6 +26,62 @@ const createCell = (text, element) => {
     return td;
 }
 
+// Sorting function to handle different data types
+const sortData = (column, ascending) => {
+    filteredData.sort((a, b) => {
+        let aValue, bValue;
+
+        switch (column) {
+            case 'name':
+                aValue = a.name || '';
+                bValue = b.name || '';
+                break;
+            case 'fullName':
+                aValue = a.biography.fullName || '';
+                bValue = b.biography.fullName || '';
+                break;
+            case 'powerStats':
+                aValue = Object.values(a.powerstats).reduce((sum, stat) => sum + (stat || 0), 0);
+                bValue = Object.values(b.powerstats).reduce((sum, stat) => sum + (stat || 0), 0);
+                break;
+            case 'race':
+                aValue = a.appearance.race || '';
+                bValue = b.appearance.race || '';
+                break;
+            case 'gender':
+                aValue = a.appearance.gender || '';
+                bValue = b.appearance.gender || '';
+                break;
+            case 'height':
+                aValue = parseInt(a.appearance.height[1]) || 0;  // Assumes height is in the format [ft, cm]
+                bValue = parseInt(b.appearance.height[1]) || 0;
+                break;
+            case 'weight':
+                aValue = parseInt(a.appearance.weight[1]) || 0;  // Assumes weight is in the format [lb, kg]
+                bValue = parseInt(b.appearance.weight[1]) || 0;
+                break;
+            case 'placeOfBirth':
+                aValue = a.biography.placeOfBirth || '';
+                bValue = b.biography.placeOfBirth || '';
+                break;
+            case 'alignment':
+                aValue = a.biography.alignment || '';
+                bValue = b.biography.alignment || '';
+                break;
+            default:
+                return 0;
+        }
+
+        // Handle missing values: missing values are always sorted last
+        if (!aValue) return 1;
+        if (!bValue) return -1;
+
+        if (aValue < bValue) return ascending ? -1 : 1;
+        if (aValue > bValue) return ascending ? 1 : -1;
+        return 0;
+    });
+}
+
 const generateTable = (loadData) => {
     // Clear any existing table
     const existingTable = document.querySelector('table');
@@ -37,13 +95,38 @@ const generateTable = (loadData) => {
     const tbody = document.createElement('tbody');
 
     // create header row
-    const headers = ["Icon", "Name", "Full Name", "PowerStats", "Race", "Gender", "Height", "Weight", "Place Of Birth", "Alignment"];
+    const headers = [
+        { label: "Icon", key: "icon" },
+        { label: "Name", key: "name" },
+        { label: "Full Name", key: "fullName" },
+        { label: "PowerStats", key: "powerStats" },
+        { label: "Race", key: "race" },
+        { label: "Gender", key: "gender" },
+        { label: "Height", key: "height" },
+        { label: "Weight", key: "weight" },
+        { label: "Place Of Birth", key: "placeOfBirth" },
+        { label: "Alignment", key: "alignment" }
+    ];
+
     const headerRow = document.createElement('tr');
 
     headers.forEach(header => {
         const th = document.createElement('th');
-        const headerName = header.charAt(0).toUpperCase() + header.slice(1);
+        const headerName = header.label;
+
         th.textContent = headerName;
+        th.style.cursor = "pointer";  // Make the headers clickable for sorting
+        th.addEventListener('click', () => {
+            if (currentSortColumn === header.key) {
+                isAscending = !isAscending;  // Toggle sort order
+            } else {
+                currentSortColumn = header.key;  // Sort by new column
+                isAscending = true;  // Reset to ascending on new column
+            }
+            sortData(currentSortColumn, isAscending);  // Sort data
+            generateTable(filteredData);  // Re-generate table
+        });
+
         headerRow.append(th);
     });
 
@@ -102,6 +185,7 @@ const generateTable = (loadData) => {
 const searchSuperheroes = (query) => {
     query = query.toLowerCase();
     filteredData = superheroes.filter(hero => hero.name.toLowerCase().includes(query));
+    sortData(currentSortColumn, isAscending);  // Ensure sorting is applied on filtered data
     generateTable(filteredData);
 }
 
@@ -127,5 +211,6 @@ fetch(url)
         superheroes = data;
         filteredData = superheroes;
         createSearchInput();  // Create the search input
+        sortData('name', true);  // Initial sort by name in ascending order
         generateTable(superheroes);  // Generate the initial table
     });

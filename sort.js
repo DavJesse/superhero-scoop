@@ -12,13 +12,13 @@ let filteredData = []; // To store filtered data based on search
 let currentSortColumn = 'name'; // Initial sort by Name
 let isAscending = true;  // Initial sort order is ascending
 
-export function sort(){
+export function sort() {
    generateTable(filteredData);  // Initially generate table with full data
 }
 
 const createCell = (text, element) => {
     const td = document.createElement('td');
-    if (element){
+    if (element) {
         td.append(element);
     } else {
         td.textContent = text;
@@ -132,8 +132,13 @@ const generateTable = (loadData) => {
 
     thead.append(headerRow);
 
-    // loop through array
-    loadData.forEach(item => {
+    // Calculate start and end indices for current page
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = pageSize === 'All' ? loadData.length : Math.min(startIndex + pageSize, loadData.length);
+
+    // loop through array for current page
+    for (let i = startIndex; i < endIndex; i++) {
+        const item = loadData[i];
         const row = document.createElement('tr');
 
         // create cells for icon
@@ -173,12 +178,15 @@ const generateTable = (loadData) => {
         row.append(createCell(item.biography.alignment));
 
         tbody.append(row);
-    });
+    }
 
     table.append(thead);
     table.append(tbody);
 
     body.append(table);
+
+    // Update pagination controls
+    updatePaginationControls();
 }
 
 // Search function to filter the data
@@ -186,6 +194,7 @@ const searchSuperheroes = (query) => {
     query = query.toLowerCase();
     filteredData = superheroes.filter(hero => hero.name.toLowerCase().includes(query));
     sortData(currentSortColumn, isAscending);  // Ensure sorting is applied on filtered data
+    currentPage = 1;  // Reset to first page when searching
     generateTable(filteredData);
 }
 
@@ -204,6 +213,68 @@ const createSearchInput = () => {
     body.insertBefore(searchDiv, body.firstChild);
 }
 
+// Create pagination controls
+const createPaginationControls = () => {
+    const paginationDiv = document.createElement('div');
+    paginationDiv.id = 'pagination-controls';
+
+    // Previous button
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Previous';
+    prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            generateTable(filteredData);
+        }
+    });
+
+    // Next button
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Next';
+    nextButton.addEventListener('click', () => {
+        if (currentPage < Math.ceil(filteredData.length / pageSize)) {
+            currentPage++;
+            generateTable(filteredData);
+        }
+    });
+
+    // Page info span
+    const pageInfo = document.createElement('span');
+    pageInfo.className = 'page-info';
+
+    // Page size select
+    const pageSizeSelect = document.createElement('select');
+    pageSizeOptions.forEach(size => {
+        const option = document.createElement('option');
+        option.value = size;
+        option.textContent = size === 'All' ? 'All' : `${size} per page`;
+        pageSizeSelect.appendChild(option);
+    });
+    pageSizeSelect.value = pageSize;
+    pageSizeSelect.addEventListener('change', (event) => {
+        pageSize = event.target.value === 'All' ? filteredData.length : parseInt(event.target.value);
+        currentPage = 1;  // Reset to first page when changing page size
+        generateTable(filteredData);
+    });
+
+    paginationDiv.append(prevButton, pageInfo, nextButton, pageSizeSelect);
+    body.insertBefore(paginationDiv, body.firstChild);
+}
+
+// Update pagination controls
+const updatePaginationControls = () => {
+    const paginationDiv = document.getElementById('pagination-controls');
+    const [prevButton, pageInfo, nextButton, pageSizeSelect] = paginationDiv.children;
+
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+
+    prevButton.disabled = currentPage === 1;
+    nextButton.disabled = currentPage === totalPages || pageSize === 'All';
+
+    // Update page info
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+}
+
 // Fetch superhero data and initialize table and search
 fetch(url)
     .then((response) => response.json())
@@ -211,6 +282,7 @@ fetch(url)
         superheroes = data;
         filteredData = superheroes;
         createSearchInput();  // Create the search input
+        createPaginationControls();  // Create pagination controls
         sortData('name', true);  // Initial sort by name in ascending order
-        generateTable(superheroes);  // Generate the initial table
+        generateTable(filteredData);  // Generate the initial table
     });

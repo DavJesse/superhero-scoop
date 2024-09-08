@@ -3,6 +3,10 @@ const url = 'https://rawcdn.githack.com/akabab/superhero-api/0.2.0/api/all.json'
 
 const body = document.querySelector('body')
 
+const pageSizeOptions = [10, 20, 50, 100, 'All'];
+let currentPage = 1;
+let pageSize = 20;  // Default page size
+
 export function sort(){
    generateTable()
 }
@@ -55,7 +59,7 @@ const generateTable = (loadData) => {
         // Powerstats 
         // Intelligence, Strength,Speed,Durability,Power, Combat
         const powerstats = Object.entries(item.powerstats)
-        .map(([value]) => `${value} `)
+        .map(([key,value]) => `${key}:${value} `)
 
         row.append(createCell(powerstats))
 
